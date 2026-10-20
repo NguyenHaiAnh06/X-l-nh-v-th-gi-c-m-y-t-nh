@@ -1,0 +1,8 @@
+1. Đọc, Hiển thị & Lưu Ảnh (Image I/O)
+cv2.imread(path, flag): Đọc ảnh từ đường dẫn.
+cv2.IMREAD_COLOR (hoặc 1): Đọc ảnh màu BGR (mặc định).
+cv2.IMREAD_GRAYSCALE (hoặc 0): Đọc ảnh xám.
+cv2.imshow(winname, img): Hiển thị ảnh lên một cửa sổ.
+cv2.waitKey(delay): Chờ nhấn phím (0: chờ vô hạn, >0: thời gian chờ tính bằng millisecond).
+cv2.destroyAllWindows(): Đóng toàn bộ cửa sổ OpenCV đang mở.
+cv2.imwrite(path, img): Lưu ảnh ra file trên đĩa.
