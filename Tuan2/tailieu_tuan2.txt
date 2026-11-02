@@ -1,0 +1,52 @@
+TAI LIEU TUAN 2 - XU LY ANH VA THI GIAC MAY TINH
+
+Quy uoc: r = gia tri pixel dau vao, s = gia tri pixel dau ra.
+Anh xam 8-bit: 0 <= r, s <= 255. Ket qua can gioi han ve [0,255].
+
+1. TANG / GIAM DO SANG
+Cong thuc: s = r + b
+Ap dung: b > 0 tang sang; b < 0 giam sang.
+
+2. DIEU CHINH DO TUONG PHAN TUYEN TINH
+Cong thuc: s = a*r + b
+Ap dung: a > 1 tang tuong phan; 0 < a < 1 giam tuong phan; b dieu chinh do sang. Co the bi bao hoa pixel.
+
+3. BIEN DOI LOGARIT
+Cong thuc: s = c*ln(1+r)
+Voi anh 8-bit: c = 255/ln(256).
+Ap dung: lam ro chi tiet vung toi, nen cac muc xam cao.
+
+4. BIEN DOI GAMMA
+Cong thuc (anh chuan hoa): s = 255*(r/255)^gamma
+Ap dung: gamma < 1 lam sang; gamma > 1 lam toi; gamma = 1 giu nguyen.
+
+5. BIEN DOI AM BAN
+Cong thuc: s = 255 - r
+Ap dung: dao nguoc vung sang va toi.
+
+6. BIEN DOI NGUONG
+Cong thuc: s = 255 neu r > T; nguoc lai s = 0.
+Ap dung: chuyen anh xam thanh anh nhi phan theo nguong T.
+
+7. KEO GIAN DO TUONG PHAN
+Cong thuc: s = 255*(r-r_min)/(r_max-r_min)
+Dieu kien: r_max > r_min.
+Ap dung: mo rong dai muc xam ve [0,255].
+
+8. LOC TRUNG BINH (MEAN FILTER)
+Cong thuc: g(x,y) = SUM(f(i,j))/(m*n), voi (i,j) trong cua so m*n.
+Ap dung: lam muot, giam nhieu; co the lam mo bien.
+
+9. LOC GAUSSIAN
+Cong thuc: G(x,y) = [1/(2*pi*sigma^2)]*exp(-(x^2+y^2)/(2*sigma^2))
+Anh dau ra: g = f * G (phep tich chap).
+Ap dung: lam muot va giam nhieu Gaussian; sigma lon thi mo manh hon.
+
+10. LOC TRUNG VI (MEDIAN FILTER)
+Cong thuc: g(x,y) = median{f(i,j) trong cua so lan can}.
+Ap dung: khu nhieu muoi tieu; thay pixel tam bang trung vi cua cua so.
+
+11. LOC SONG PHUONG (BILATERAL FILTER)
+Cong thuc: g(p) = SUM[w(p,q)*f(q)]/SUM[w(p,q)]
+Trong do: w(p,q) = exp(-||p-q||^2/(2*sigma_s^2))*exp(-(f(p)-f(q))^2/(2*sigma_r^2))
+Ap dung: giam nhieu va giu bien; trong so phu thuoc khoang cach va do chenh muc xam.

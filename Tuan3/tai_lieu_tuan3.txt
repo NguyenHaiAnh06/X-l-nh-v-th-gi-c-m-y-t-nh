@@ -1,0 +1,102 @@
+================================================================================
+          TÀI LIỆU TÓM TẮT CHƯƠNG 4: HISTOGRAM VÀ CÂN BẰNG HISTOGRAM
+================================================================================
+
+1. KHÁI NIỆM CƠ BẢN VỀ HISTOGRAM
+--------------------------------------------------------------------------------
+- Biểu đồ Histogram của ảnh xám là biểu đồ thể hiện tần suất xuất hiện của 
+  các mức xám trong khoảng từ 0 đến L-1 (với ảnh 8-bit thì L = 256, mức xám từ 0 đến 255).
+- Trục hoành (x): Giá trị mức xám (0 -> 255).
+- Trục tung (y): Số lượng pixel (hoặc xác suất xuất hiện) có cùng mức xám đó.
+
+
+2. CÁC CÔNG THỨC XÁC SUẤT VÀ TÍNH TOÁN (PROBABILITY & CDF)
+--------------------------------------------------------------------------------
+Các thông số cơ bản:
+- H, W : Chiều cao và chiều rộng của ảnh.
+- N    : Tổng số pixel của ảnh. Công thức: N = H * W
+- L    : Số mức xám tối đa (L = 256 cho ảnh 8-bit).
+- n_k  : Số lượng pixel có giá trị mức xám bằng k (với 0 <= k <= L-1).
+
+a) Hàm mật độ xác suất - PDF (Probability Density Function):
+   Tính xác suất xuất hiện của mức xám k trong ảnh:
+   P(r_k) = n_k / N
+   
+   Đặc tính:
+   - 0 <= P(r_k) <= 1 với mọi k
+   - Tổng xác suất của tất cả mức xám bằng 1: Sum_{k=0}^{L-1} P(r_k) = 1
+
+b) Hàm phân bố tích lũy - CDF (Cumulative Distribution Function):
+   Tổng tích lũy xác suất từ mức xám 0 đến mức xám k:
+   CDF(r_k) = Sum_{j=0}^{k} P(r_j) = (1 / N) * Sum_{j=0}^{k} n_j
+
+c) Công thức cân bằng Histogram (Histogram Equalization):
+   Chuyển đổi mức xám r_k cũ thành mức xám s_k mới theo công thức:
+   
+   - Công thức lý thuyết cơ bản:
+     s_k = round( (L - 1) * CDF(r_k) )
+     
+   - Công thức thực tế (Loại bỏ các mức xám 0 đầu tiên - CDF_min):
+     s_k = round( ((CDF(r_k) - CDF_min) / (N - CDF_min)) * (L - 1) )
+     
+     Trong đó:
+     + CDF_min : Giá trị CDF khác 0 nhỏ nhất trong bảng CDF.
+     + round() : Hàm làm tròn về số nguyên gần nhất.
+     + Cuối cùng, kẹp giá trị s_k trong khoảng [0, 255]:
+       s_k = max(0, min(255, s_k))
+
+
+3. CÔNG THỨC CHUYỂN ĐỔI KHÔNG GIAN MÀU
+--------------------------------------------------------------------------------
+a) Chuyển ảnh màu RGB sang ảnh xám (Trung bình cộng):
+   Gray(i, j) = floor( (R(i, j) + G(i, j) + B(i, j)) / 3 )
+
+b) Chuyển đổi giữa RGB và YCrCb:
+   - RGB -> YCrCb (Y: Độ sáng, Cr & Cb: Kênh màu sắc)
+     Y  = 0.299 * R + 0.587 * G + 0.114 * B
+     Cb = 128 + (-0.168736 * R - 0.331264 * G + 0.5 * B)
+     Cr = 128 + (0.5 * R - 0.418688 * G - 0.081312 * B)
+     
+   - YCrCb -> RGB (Sau khi cân bằng Histogram trên kênh Y):
+     R = Y + 1.402 * (Cr - 128)
+     G = Y - 0.344136 * (Cb - 128) - 0.714136 * (Cr - 128)
+     B = Y + 1.772 * (Cb - 128)
+
+
+4. TÓM TẮT CÁC HÀM VÀ THƯ VIỆN SỬ DỤNG
+--------------------------------------------------------------------------------
+a) Thư viện `math`:
+   - math.floor(x)   : Làm tròn xuống số nguyên gần nhất.
+   - math.ceil(x)    : Làm tròn lên số nguyên gần nhất.
+   - min(a, b)       : Lấy giá trị nhỏ hơn.
+   - max(a, b)       : Lấy giá trị lớn hơn.
+
+b) Thư viện `numpy` (Khởi tạo ma trận & mảng):
+   - np.zeros((H, W), dtype=np.uint8)  : Tạo ma trận ảnh 2D chứa các số 0 kiểu 8-bit.
+   - np.zeros(256, dtype=int)          : Tạo mảng 1D độ dài 256 dùng lưu Histogram.
+   - np.clip(val, min_val, max_val)    : Kẹp giá trị val trong khoảng [min_val, max_val].
+
+c) Thư viện `cv2` (Chỉ dùng để Đọc / Hiển thị / Đóng cửa sổ):
+   - cv2.imread("file.jpg")           : Đọc ảnh từ ổ cứng (Mặc định dạng BGR).
+   - cv2.imshow("Tên cửa sổ", ma_trận): Hiển thị ảnh (BẮT BUỘC có 2 tham số).
+   - cv2.waitKey(0)                   : Dừng màn hình chờ bấm phím bất kỳ.
+   - cv2.destroyAllWindows()          : Đóng toàn bộ cửa sổ ảnh đang mở.
+
+d) Thư viện `matplotlib.pyplot` (Vẽ biểu đồ):
+   - plt.figure(figsize=(w, h))        : Tạo khung vẽ biểu đồ.
+   - plt.plot(data, color="red", label="...") : Vẽ đường dữ liệu với màu sắc và chú thích.
+   - plt.title("...")                 : Thêm tiêu đề biểu đồ.
+   - plt.xlabel("..."), plt.ylabel("...") : Đặt tên trục hoành và trục tung.
+   - plt.legend()                     : Hiển thị bảng chú thích màu.
+   - plt.grid(True)                   : Bật lưới tọa độ.
+   - plt.show()                       : Hiển thị biểu đồ lên màn hình.
+
+
+5. QUY TRÌNH THỰC HIỆN CÂN BẰNG HISTOGRAM THỦ CÔNG (DÙNG FOR)
+--------------------------------------------------------------------------------
+Bước 1: Tính Histogram (đếm tần suất xuất hiện mức xám bằng 2 vòng lặp FOR).
+Bước 2: Tính mảng CDF bằng cách cộng tích lũy từ k = 0 đến 255.
+Bước 3: Tìm CDF_min khác 0 đầu tiên.
+Bước 4: Tạo bảng ánh xạ mức xám mới (LUT - Look Up Table) bằng công thức s_k.
+Bước 5: Duyệt qua từng pixel của ảnh gốc bằng 2 vòng lặp FOR và gán giá trị mới s_k.
+================================================================================
