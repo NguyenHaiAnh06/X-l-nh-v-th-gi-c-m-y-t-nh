@@ -43,11 +43,6 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
-# 2. Nhận xét ảnh dựa vào biểu đồ:
-# - Tập trung lệch trái (gần 0): Ảnh tối/thiếu sáng.
-# - Tập trung lệch phải (gần 255): Ảnh quá sáng.
-# - Co cụm dải hẹp: Độ tương phản thấp.
-# - Trải rộng từ 0 đến 255: Độ tương phản cao, rõ nét.
 
 # tbc
 anh_xam = np.zeros((chieu_cao, chieu_rong), dtype=np.uint8)

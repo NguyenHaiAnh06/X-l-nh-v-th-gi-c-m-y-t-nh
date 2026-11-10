@@ -1,0 +1,85 @@
+================================================================================
+  TAI LIEU LY THUYET & SO LUOC CACH TRIEN KHAI: K-MEANS & REGION GROWING
+================================================================================
+
+I. THUAT TOAN K-MEANS CLUSTERING (PHAN VUNG TOAN CUC DUA TREN MAU SAC)
+--------------------------------------------------------------------------------
+1. TONG QUAN & UNG DUNG:
+   - Thuoc nhom hoc khong giam sat (Unsupervised Learning).
+   - Gom cac pixel co mau sac/cuong do sang tuong dong vao cung 1 trong K nhom.
+   - Ung dung: Nen mau anh (Color Quantization), giam so luong mau, tach phan 
+     nen khoi cac doi tuong tong the.
+
+2. CO SO TOAN HOC & CONG THUC:
+   - Khoang cach Euclidean giua pixel P(r, g, b) va tam cum C(r, g, b):
+       d(P, C) = sqrt( (r_p - r_c)^2 + (g_p - g_c)^2 + (b_p - b_c)^2 )
+
+   - Gia tri tam cum moi (u_k) bang trung binh cong cac pixel thuoc cum k:
+       u_k = (1 / N_k) * sum(P_i)   [voi P_i thuoc cum k]
+
+3. SO LUOC CAC BUOC TRIEN KHAI:
+   - Buoc 1: Chuyen anh ve dang mang 2D tap hop cac diem anh (N_pixels, 3).
+   - Buoc 2: Chon ngau nhien K gia tri mau trong anh lam K tam cum ban dau.
+   - Buoc 3 (Gan nhan): Tinh khoang cach tu moi pixel toi K tam cum. Gan pixel 
+     do vao cum co khoang cach nho nhat.
+   - Buoc 4 (Cap nhat): Tinh lai vi tri tam cum moi bang trung binh cong mau 
+     cua tat ca pixel trong cum do.
+   - Buoc 5 (Dieu kien dung): Lap lai Buoc 3 va 4 cho toi khi vi tri cac tam 
+     cum khong thay doi hoac dat so vong lap toi da (max_iter).
+   - Buoc 6: Gán lai mau cua tung pixel bang mau cua tam cum tuong ung va 
+     chuyen mang ve lai kich thuoc anh ban dau (H, W, 3).
+
+
+================================================================================
+II. THUAT TOAN REGION GROWING (TANG TRUONG VUNG LIEN THONG CUC BO)
+--------------------------------------------------------------------------------
+1. TONG QUAN & UNG DUNG:
+   - Phap phan vung dua tren tinh tuong dong mau va vi tri ke nhau (liên thong).
+   - Bat dau tu mot/nhieu diem mam (Seed points) va lan rong ra xung quanh.
+   - Ung dung: Tach khoi u/vung ton thuong trong anh y te (MRI, CT, X-ray), 
+     tach doi tuong cu the ra khoi nen khi biet truoc 1 vi tri thuoc doi tuong.
+
+2. CO SO TOAN HOC & TIEU CHUAN:
+   - Dieu kien lan vung (Tieu chuan tuong dong):
+       | I(x, y) - I(seed) | <= Threshold
+     (Voi I(seed) la cuong do sang diem mam, I(x, y) la diem lân can, Threshold 
+      la nguong sai lech cho phép).
+
+   - Ma tran 8-hàng xóm (8-neighbors): Duyệt 8 hướng xung quanh pixel hiện tại
+     (-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1).
+
+3. SO LUOC CAC BUOC TRIEN KHAI:
+   - Buoc 1: Chuyen anh sang anh xam (Grayscale), chon vi tri diem mam (x_seed, 
+     y_seed) va dat gia tri nguong T.
+   - Buoc 2: Khoi tao hang cho (Queue - giai thuat BFS), day diem mam vao Queue 
+     va danh dau ma tran da duyet (visited).
+   - Buoc 3: Lay 1 pixel (x, y) khoi Queue, gán gia tri mau trang (255) cho 
+     pixel do tren anh ket qua.
+   - Buoc 4: Xet 8 pixel lân can xung quanh (nx, ny):
+     + Kiem tra xem (nx, ny) co nam trong khung anh hay khong.
+     + Neu chua duyet VA |I(nx, ny) - I(seed)| <= T: Danh dau visited va 
+       day (nx, ny) vao Queue.
+   - Buoc 5 (Dieu kien dung): Lap lai Buoc 3 va 4 cho den khi Queue rong.
+
+
+================================================================================
+III. SO SANH & LUU Y KHI TRIEN KHAI
+================================================================================
+1. BANG SO SANH MAT BANG CHUNG:
++-------------------+--------------------------------+--------------------------------+
+| TIEU CHI          | K-MEANS CLUSTERING             | REGION GROWING                 |
++-------------------+--------------------------------+--------------------------------+
+| Pham vi phan vung | TOAN CUC (Global)              | CUC BO (Local)                 |
+| Tinh lien thong   | Khong quan tam vi tri dia ly,  | Bat buoc cac pixel phai ke nhau|
+|                   | cung mau la gom vung.          | va lien thong voi diem mam.    |
+| Tham so dau vao   | So luong cum K.                | Diem mam (Seed) & Nguong (T).  |
+| Vấn de hay gap    | Nhay cam voi khoi tao tam,     | De bi loang vung (Leakage) neu |
+|                   | de bi mat thong tin ranh gioi. | chon nguong T qua lon.         |
++-------------------+--------------------------------+--------------------------------+
+
+2. LUU Y TRIEN KHAI CUA TUNG THUAT TOAN:
+   - K-Means: Nen dung kieu du lieu float64 khi tinh khoang cach de tranh 
+     overflow/underflow. Chon ngau nhien seed (random_state) de ket qua co dinh.
+   - Region Growing: Phai luon kiem tra biên cua anh (0 <= nx < W va 0 <= ny < H) 
+     khi duyet 8-hàng xóm de tranh loi truy cap ngoai mang.
+================================================================================

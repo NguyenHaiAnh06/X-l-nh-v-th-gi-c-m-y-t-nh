@@ -1,0 +1,202 @@
+================================================================================
+          TAI LIEU TRA CUU THUAT TOAN TIM BIEN SOBEL (SOBEL OPERATOR)
+================================================================================
+
+I. TONG QUAN TOAN HOC & MA TRAN SOBEL
+--------------------------------------------------------------------------------
+Sobel la thuat toan tinh dao ham xap xi cua anh de phat hien bien gioi (edge) 
+dua tren su thay doi dot ngot ve cuong do sang theo huong X (ngang) va Y (doc).
+
+1. Ma tran Sobel 3x3 chuan:
+   - Dao ham theo huong X (Hx - Tim bien doc):
+     [-1  0  1]
+     [-2  0  2]
+     [-1  0  1]
+
+   - Dao ham theo huong Y (Hy - Tim bien ngang):
+     [-1 -2 -1]
+     [ 0  0  0]
+     [ 1  2  1]
+
+2. Ma tran Sobel 5x5 (Mo rong chong nhieu):
+   - Hx_5x5:
+     [-5   -4   0   4   5]
+     [-8  -10   0  10   8]
+     [-10 -20   0  20  10]
+     [-8  -10   0  10   8]
+     [-5   -4   0   4   5]
+
+   - Hy_5x5:
+     [-5  -8 -10  -8  -5]
+     [-4 -10 -20 -10  -4]
+     [ 0   0   0   0   0]
+     [ 4  10  20  10   4]
+     [ 5   8  10   8   5]
+
+3. Cong thuc tinh Do lon bien (Magnitude) va Huong Gradient:
+   - Do lon bien G = sqrt(Gx^2 + Gy^2)   [hoac xap xi: G = |Gx| + |Gy|]
+   - Huong bien theta = atan2(Gy, Gx)     [Tinh bang radian]
+
+
+================================================================================
+II. CAC HAM XU LY SOBEL TRONG OPENCV (PYTHON)
+================================================================================
+
+1. HAM cv2.Sobel() - Tich chap Sobel 3x3, 5x5 chuan
+--------------------------------------------------------------------------------
+* Cu phap:
+  dst = cv2.Sobel(src, ddepth, dx, dy, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
+
+* Giai thich tham so:
+  - src       : Anh dau vao (Nen la anh xam - Grayscale).
+  - ddepth    : Kieu du lieu anh dau ra (Quan trong: Dung cv2.CV_64F hoac cv2.CV_32F 
+                de tranh mat gia tri am khi tinh dao ham).
+  - dx        : Bac dao ham theo truc X (1 = Co, 0 = Khong).
+  - dy        : Bac dao ham theo truc Y (1 = Co, 0 = Khong).
+  - ksize     : Kich thuoc kernel (1, 3, 5, 7). Neu ksize=-1 se dung Scharr filter.
+  - scale     : He so nhan ti le ket qua (Mac dinh = 1).
+  - delta     : Gia tri cộng them vao ket qua (Mac dinh = 0).
+  - borderType: Phuong phap xu ly vien padding.
+
+2. HAM cv2.magnitude() - Tinh do lon bien tu Gx va Gy
+--------------------------------------------------------------------------------
+* Cu phap:
+  magnitude = cv2.magnitude(x, y)
+
+* Giai thich tham so:
+  - x: Mang float32/float64 chua gia tri dao ham Gx.
+  - y: Mang float32/float64 chua gia tri dao ham Gy.
+
+3. HAM cv2.filter2D() - Tich chap voi ma tran Sobel tuy chinh (nhu 5x5)
+--------------------------------------------------------------------------------
+* Cu phap:
+  dst = cv2.filter2D(src, ddepth, kernel)
+
+* Giai thich tham so:
+  - src   : Anh dau vao (Grayscale).
+  - ddepth: Kiểu dữ liệu output (dung cv2.CV_64F).
+  - kernel: Ma tran 2D NumPy (vd: Hx_5x5 hoac Hy_5x5).
+
+4. HAM cv2.convertScaleAbs() - Chuyen doi anh float ve uint8 (0-255)
+--------------------------------------------------------------------------------
+* Cu phap:
+  dst = cv2.convertScaleAbs(src)
+
+
+================================================================================
+III. MA MAU PYTHON HUONG DAN SU DUNG
+================================================================================
+
+--------------------------------------------------------------------------------
+MAU 1: DUNG OPENCV CHUAN (SOBEL 3X3 HOAC 5X5 TOAN CUC)
+--------------------------------------------------------------------------------
+import cv2
+import numpy as np
+
+# 1. Doc anh va chuyen sang anh xam
+img = cv2.imread('input.jpg')
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+# 2. Tinh dao ham Gx va Gy bang cv2.Sobel (ksize=3 hoac 5)
+gx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
+gy = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
+
+# 3. Tinh do lon bien (Magnitude)
+sobel_mag = cv2.magnitude(gx, gy)
+
+# 4. Chuyen ve dang anh 8-bit (0-255) de hien thi / luu file
+sobel_final = np.clip(sobel_mag, 0, 255).astype(np.uint8)
+
+cv2.imshow("Sobel OpenCV", sobel_final)
+cv2.waitKey(0)
+
+
+--------------------------------------------------------------------------------
+MAU 2: DUNG MA TRAN SOBEL 5X5 TUY CHINH VOI cv2.filter2D
+--------------------------------------------------------------------------------
+import cv2
+import numpy as np
+
+gray = cv2.imread('input.jpg', cv2.IMREAD_GRAYSCALE)
+
+# Dinh nghia ma tran Hx va Hy 5x5 theo de bai
+Hx_5x5 = np.array([
+    [-5,  -4, 0,  4,  5],
+    [-8, -10, 0, 10,  8],
+    [-10,-20, 0, 20, 10],
+    [-8, -10, 0, 10,  8],
+    [-5,  -4, 0,  4,  5]
+], dtype=np.float64)
+
+Hy_5x5 = np.array([
+    [-5,  -8,-10, -8, -5],
+    [-4, -10,-20,-10, -4],
+    [ 0,   0,  0,  0,  0],
+    [ 4,  10, 20, 10,  4],
+    [ 5,   8, 10,  8,  5]
+], dtype=np.float64)
+
+# Tich chap
+gx_5x5 = cv2.filter2D(gray, cv2.CV_64F, Hx_5x5)
+gy_5x5 = cv2.filter2D(gray, cv2.CV_64F, Hy_5x5)
+
+# Tinh Magnitude
+sobel_5x5 = np.sqrt(gx_5x5**2 + gy_5x5**2)
+sobel_5x5 = np.clip(sobel_5x5, 0, 255).astype(np.uint8)
+
+
+--------------------------------------------------------------------------------
+MAU 3: THUAT TOAN TICH CHAP SOBEL THU CONG 100% (KHONG DUNG OPENCV FILTER)
+--------------------------------------------------------------------------------
+import numpy as np
+
+def conv2d_manual(image, kernel):
+    kh, kw = kernel.shape
+    pad_h, pad_w = kh // 2, kw // 2
+    
+    # Padding vien anh voi gia tri 0
+    padded = np.pad(image, ((pad_h, pad_h), (pad_w, pad_w)), mode='constant')
+    h, w = image.shape
+    output = np.zeros((h, w), dtype=np.float64)
+    
+    # Truot mat na va tinh tich tong
+    for i in range(h):
+        for j in range(w):
+            region = padded[i:i+kh, j:j+kw]
+            output[i, j] = np.sum(region * kernel)
+            
+    return output
+
+# Cach dung:
+# Gx = conv2d_manual(gray_img, Hx_kernel)
+# Gy = conv2d_manual(gray_img, Hy_kernel)
+# G  = np.sqrt(Gx**2 + Gy**2)
+
+
+================================================================================
+IV. QUY TRINH XU LY VONG LAP (PIPELINE CHUAN KHI TIM BIEN)
+================================================================================
+1. Read Image  -> Doc anh mau bang cv2.imread()
+2. Grayscale   -> Chuyen sang anh xam (Y = 0.299R + 0.587G + 0.114B)
+3. Blur (Opt)  -> Lam min anh bang cv2.GaussianBlur (khu nhieu truoc khi tim bien)
+4. Conv Gx, Gy -> Tich chap anh xam voi kernel Hx va Hy (kieu float64)
+5. Magnitude   -> Tinh G = sqrt(Gx^2 + Gy^2)
+6. Normalize   -> Convert ve uint8 (np.clip / cv2.convertScaleAbs)
+7. Threshold   -> (Option) Nhi phan hoa de giu lai bien ro (G > thresh)
+
+
+================================================================================
+V. LUU Y QUAN TRONG KHI TRIEN KHAI (COMMON PITFALLS)
+================================================================================
+1. KIEU DU LIEU (DATA TYPE):
+   - ANH GOC thuong la uint8 (0 -> 255).
+   - Khi tinh dao ham, gia tri co the am (vi du: 0 - 255 = -255). Neu de uint8
+     thi gia tri am se bi loi quay vong (wrap-around thành 255 hoặc 0).
+   - KHUYEN CAM: Luon tinh dao ham tren kieu cv2.CV_64F (float64), sau khi tinh 
+     Magnitude xong moi dua ve uint8.
+
+2. SO SANH SOBEL 3X3 VS SOBEL 5X5:
+   - Sobel 3x3: Phat hien bien chi tiet, duong bien manh, nhung nhay cam voi nhieu.
+   - Sobel 5x5: Tich hop lam min Gauss dien tich rong hon, chong nhieu tot hon,
+                duong bien thu duoc dam va day hon.
+================================================================================
