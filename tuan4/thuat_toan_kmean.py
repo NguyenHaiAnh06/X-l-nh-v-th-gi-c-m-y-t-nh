@@ -29,9 +29,7 @@ def kmeans_segmentation(img_rgb, k=3, max_iters=10):
         ])
         
         #stop
-        if np.allclose(centers, new_centers):
-            print(f"Hội tụ tại vòng lặp thứ {i + 1}")
-            break
+        
             
         centers = new_centers
         
